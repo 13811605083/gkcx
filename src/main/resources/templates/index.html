@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" style="height: 100%;">
+<head>
+    <meta charset="UTF-8">
+    <title>XXX管理系统</title>
+
+    <link rel="shortcut icon" th:href="@{/static/favicon/favicon.ico}">
+    <link th:href="@{/webjars/layui/2.5.4/css/layui.css}" rel="stylesheet" media="all">
+    <link th:href="@{/static/css/index.css}" rel="stylesheet" media="all">
+</head>
+<body style="height: 100%;">
+<div class="layui-layout layui-layout-admin"> <!-- 添加skin-1类可手动修改主题为纯白，添加skin-2类可手动修改主题为蓝白 -->
+    <div class="layui-header my-header">
+        <div class="my-header-logo">XXX管理系统</div>
+        <ul class="layui-nav" lay-filter="side-top-left">
+            <li class="layui-nav-item layui-this">
+                <a href="javascript:void(0);" ><i class="layui-icon">&#xe68e;</i>首页</a>
+            </li>
+
+            <li th:each="parent:${session.SESSION_BEAN.menuList}" th:if="${parent.lev} eq '1'" class="layui-nav-item">
+                <a href="javascript:void(0);" th:href-url="${parent.menuUrl}"><i th:class="${parent.clazz}" th:utext="${parent.icon}"></i>[( ${parent.menuName} )]</a>
+                <dl class="layui-nav-child" th:if="${parent.isLeaf} eq '0'">
+                    <dd th:each="child:${session.SESSION_BEAN.menuList}" th:if="${child.pid} eq ${parent.id}">
+                        <a href="javascript:void(0);" th:href-url="${child.menuUrl}">
+                            <i th:class="${child.clazz}" th:utext="${child.icon}"></i>[( ${child.menuName} )]</a>
+                    </dd>
+                </dl>
+            </li>
+
+<!--            <li class="layui-nav-item">-->
+<!--                <a href="javascript:void(0);"><i class="layui-icon layui-icon-set"></i>系统管理</a>-->
+<!--                <dl class="layui-nav-child">-->
+<!--                    <dd><a href="javascript:void(0);" href-url="/user/toList"><i class="layui-icon layui-icon-survey"></i>用户管理</a></dd>-->
+<!--                    <dd><a href="javascript:void(0);" href-url="/role/toList"><i class="layui-icon layui-icon-survey"></i>权限管理</a></dd>-->
+<!--                </dl>-->
+<!--            </li>-->
+
+        </ul>
+        <!-- 顶部右侧添加选项卡监听 -->
+        <ul class="layui-nav" style="float: right;" lay-filter="side-top-right">
+            <li class="layui-nav-item">
+                <a class="name" href="javascript:void(0);">
+                    <img th:src="@{/static/images/admin.png}" style="height: 1.5vh; width: 1.5vh; padding-right: 3px;" alt="" src="">
+                    [( ${session.SESSION_BEAN.userName}+'（'+${session.SESSION_BEAN.orgName} +'）' )]</a>
+                <dl class="layui-nav-child">
+                    <dd><a href="javascript:void(0);" lay-event="changePwd"><i class="layui-icon">&#xe621;</i>修改密码</a></dd>
+                    <dd><a href="javascript:void(0);" lay-event="logout"><i class="layui-icon">&#x1006;</i>安全退出</a></dd>
+                </dl>
+            </li>
+        </ul>
+    </div>
+
+    <div class="layui-body my-body">
+        <div class="layui-tab layui-tab-card my-tab" lay-filter="card" lay-allowClose="true">
+            <ul class="layui-tab-title">
+                <li class="layui-this" lay-id="1"><span><i class="layui-icon">&#xe68e;</i>首页</span></li>
+            </ul>
+            <div class="layui-tab-content">
+                <div class="layui-tab-item layui-show">
+                    <iframe id="iframe" th:src="@{/score/toList}" style="border-style: none;"></iframe>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+</div>
+</body>
+<script th:src="@{/webjars/jquery/1.12.3/jquery.min.js}" charset="utf-8"></script>
+<script th:src="@{/webjars/layui/2.5.4/layui.js}" charset="utf-8"></script>
+<script th:inline="javascript">
+    const ctxPath = [[ ${#httpServletRequest.getContextPath()} ]];
+    var userName = [[ ${session.SESSION_BEAN.userName} ]];
+    let layer;
+    // 主入口方法
+    layui.use(["layer", "element", "util"], function () {
+        // 操作对象
+        const device = layui.device();
+        const element = layui.element;
+        const util = layui.util;
+        layer = layui.layer;
+
+        if (device.ie && device.ie < 8) {//阻止IE7以下访问
+            layer.alert("您使用的IE浏览器版本过低，请使用ie9及以上版本或者使用其他浏览器");
+        }
+
+        element.on("nav(side-top-left)", function (elem) {//菜单点击事件
+            const title = $(elem).html();
+            if(title.indexOf("首页") !== -1){
+                element.tabChange("card", 1);//切换到首页
+                return false;
+            }
+
+            const src = $(elem).attr("href-url");
+            if(!src) return false;
+            window.addTab( $(elem), title, ctxPath+src);// 添加tab方法
+        });
+
+        //根据导航栏text获取lay-id
+        function getTitleId(card, title) {
+            let id = -1;
+            $(document).find(".layui-tab[lay-filter=" + card + "] ul li").each(function () {
+                if (title === $(this).find("span").html()) {
+                    id = $(this).attr("lay-id");
+                }
+            });
+            return id;
+        }
+
+        // 添加TAB选项卡
+        window.addTab = function ( elem, title , src) {
+            let card = "card";                                              // 选项卡对象
+            let layId = getTitleId(card, title);                             // 是否有该选项卡存在
+            let id = new Date().getTime();
+            if(layId === -1){
+                element.tabAdd(card, { //新增
+                    title: "<span>" + title + "</span>"
+                    , content: "<iframe src='" + src + "' style='border-style: none;'></iframe>"
+                    , id: id
+                });
+            }else{
+                id = layId;
+            }
+            elem.parent().parent().parent().addClass("layui-this");
+            element.tabChange(card, id);// 切换相应的ID tab
+            return false;
+        };
+
+        element.on('tab(card)', function(data){//选项版切换事件
+
+        });
+
+        util.event('lay-event',{
+            "changePwd": function(){//修改密码
+                top.layuiWindow = top.layer.open({
+                    type: 2,
+                    anim: 1,
+                    title: ['<span style="font-size:16px;">修改密码</span>'],
+                    area: ['510px', '280px'],
+                    shadeClose: true, //点击遮罩关闭
+                    content: [ctxPath+'/user/tochangepwd','no'],
+                });
+            },
+            "logout": function(){//退出登录
+                layer.confirm('确认退出?', {icon: 3, title:'提示'}, function(index){
+                    window.location.href = ctxPath+"/logout";
+                    layer.close(index);
+                });
+            }
+        });
+    });
+
+    /**刷新活动窗口的Grid*/
+    function refreshLay() {
+        try{
+            document.querySelectorAll("div.layui-show")[0].getElementsByTagName('iframe')[0].contentWindow.refreshLay();
+        }catch (e) {
+
+        }
+    }
+
+    /**带参数刷新活动窗口的Grid*/
+    function refreshLayWithPar(obj) {
+        try{
+            document.querySelectorAll("div.layui-show")[0].getElementsByTagName('iframe')[0].contentWindow.refreshLayWithPar(obj);
+        }catch (e) {
+
+        }
+    }
+
+    /**刷新活动窗口页面*/
+    function reloadBody() {
+        try{
+            document.querySelectorAll("div.layui-show")[0].getElementsByTagName('iframe')[0].contentWindow.location.reload();
+        }catch (e) {
+
+        }
+    }
+</script>
+</html>

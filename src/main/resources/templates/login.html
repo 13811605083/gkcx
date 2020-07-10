@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en" style="height: 100%;" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>XXX管理系统</title>
+    <!-- 自定义favicon -->
+   <link th:href="@{/static/favicon/favicon.ico}" rel="shortcut icon" >
+    <link th:href="@{/static/css/login.css}"  rel="stylesheet"/>
+</head>
+<script>
+    if(top.window.location.href != window.location.href){
+        top.window.location.href = window.location.href;
+    }
+</script>
+<body>
+<div class="top"></div>
+<div class="name">XXX管理系统</div>
+<form th:action="@{/login}"  method="post" id="loginForm">
+    <div class="right">
+        <div class="error-tip" th:text="${msg}" th:if="${not #strings.isEmpty(msg)}"></div>
+
+        <div class="user-input">
+            <div class="user-logo"></div>
+            <input type="text" th:autofocus="${#strings.isEmpty(account)}"  name="account" th:value="${account}" placeholder="账号" autocomplete="off" class="user">
+        </div>
+        <div class="passwd-input">
+            <div class="passwd-logo"></div>
+            <input type="password" th:autofocus="${not #strings.isEmpty(account)}" autofocus name="password" placeholder="密码" autocomplete="off" class="passwd" >
+        </div>
+        <input type="submit" id="imgbt" value="登  录" class="login-btn" tabindex="3">
+    </div>
+</form>
+
+<div class="bottom"></div>
+</body>
+</html>

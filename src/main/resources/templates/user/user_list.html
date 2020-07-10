@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" style="height: 100%;overflow-x: hidden;">
+
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+
+    <link th:href="@{/webjars/layui/2.5.4/css/layui.css}" rel="stylesheet" media="all">
+</head>
+<style>
+    .layui-btn { border-radius: 7px; }
+    .odd        { background-color: #f2f2f2; }
+    .even       { background-color: #fff; }
+</style>
+<body>
+<div style="padding: 20px;">
+    <!--模糊搜索区域-->
+    <div style="width: 885px;float: left;position:relative;">
+        <form class="layui-form" role="form" id="searchForm" action="">
+            <table style="width: 100%;border: none;" id="searchTable">
+                <tr style="background: #ffffff;">
+                    <td class="layui-form-item" style="text-align: right;width: 90px;"><label>用户账号：</label></td>
+                    <td style="width: 150px;">
+                        <label>
+                            <input type="text" name="s_userAccount" class="layui-input" style="width:100%;display: inline;background-color: #fff;" placeholder="请输入用户账号"/>
+                        </label>
+                    </td>
+                    <td style="width: 100px;text-align: right;" class="layui-form-item" ><label>用户名称：</label></td>
+                    <td style="width: 150px;">
+                        <label>
+                            <input type="text" name="s_userName" class="layui-input" style="width:100%;display: inline;background-color: #fff;" placeholder="请输入用户名称"/>
+                        </label>
+                    </td>
+                    <td style="width:130px ;text-align: right;" class="layui-form-item" ><label>部门：</label></td>
+                    <td style="width: 240px;">
+                        <label>
+                            <select name="seq_orgId">
+                                <option value=""></option>
+                                <option th:each="org : ${orgList}" th:text="${org.orgName}" th:value="${org.id}" ></option>
+                            </select>
+                        </label>
+                    </td>
+                    <td></td>
+                </tr>
+            </table>
+        </form>
+    </div>
+    <div style="width: 100%;">
+        <button class="layui-btn" onclick="mySearch()"><i class="layui-icon layui-icon-search"></i></button>
+        <button class="layui-btn layui-btn-primary" onclick="myReset();"><i class="layui-icon layui-icon-refresh-3"></i></button>
+
+        <button class="layui-btn layui-btn-normal" onclick="toAddUserInfo()">
+            <i class="layui-icon">&#xe61f;</i>添加用户
+        </button>
+    </div>
+    <!--数据表格-->
+    <table class="layui-hide" id="userGrid" lay-filter="tableFilter"></table>
+</div>
+</body>
+<script type="text/html" id="operationTpl">
+    <button class="layui-btn layui-btn-xs layui-btn-primary" title="编辑" lay-event="edit"><i class="layui-icon">&#xe642;</i></button>
+    <button class="layui-btn layui-btn-xs layui-btn-primary" title="删除" lay-event="del"><i class="layui-icon">&#xe640;</i></button>
+</script>
+<script type="text/html" id="authorityTpl">
+    <a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="roleAuthority">用户角色</a>
+</script>
+<script type="text/html" id="checkboxTpl">
+    <input type="checkbox" disabled name="lock" value="{{d.isUsing}}" title="启用"  {{ d.isUsing == 1 ? 'checked' : '' }} >
+</script>
+
+<script th:src="@{/webjars/jquery/1.12.3/jquery.min.js}" charset="utf-8"></script>
+<script th:src="@{/webjars/layui/2.5.4/layui.js}" charset="utf-8"></script>
+<script th:src="@{/static/js/base.js}" charset="utf-8"></script>
+<script th:src="@{/static/js/watermark.js}" charset="utf-8"></script>
+
+<script th:inline="javascript">
+    const ctxPath = [[ ${#httpServletRequest.getContextPath()} ]];
+    let layTable;
+
+    layui.use("table", function () {
+        layTable = layui.table;
+        layTable.render({//加载列表
+            elem: "#userGrid",
+            id: "userTable",
+            limit: 20,
+            url: ctxPath + "/user/listData", //数据接口
+            page: true, //开启分页
+            cols: [[ //表头
+                {type: "numbers"},
+                {title: "操作", width: 120, toolbar: "#operationTpl", align: "center"},
+                {title: "设置角色", width: 100, toolbar: "#authorityTpl", align: "center"},
+                {field: "userAccount", title: "用户账号", align: "center"},
+                {field: "userName", title: "用户名称", align: "center"},
+                {field: "areaName", title: "部门", align: "center"},
+                {field: 'isUsing', title:'是否启用', templet: '#checkboxTpl',align: "center"},
+                {field: 'roles', title:'用户角色', align: "center"}
+            ]],
+            done: function () {
+                $('tr:odd').addClass('odd');
+                $('tr:even').addClass('even');
+                setTimeout(function(){
+                    $(".layui-form-checkbox").removeClass("layui-checkbox-disbaled");
+                },100);
+            }
+        });
+
+        layTable.on("tool(tableFilter)", function (obj) {//监听工具条
+            const data = obj.data;
+            if (obj.event === "del") {
+                top.layer.confirm("确认删除此用户吗？", function (index) {
+                    top.layer.close(index);
+                    $.ajax({
+                        type: "DELETE",
+                        url: ctxPath + "/user/deleteUser/" + data.userId,
+                        async: true,
+                        success: function (data) {
+                            if (data.valid === "ERROR") {
+                                top.layer.msg("删除失败！", function () {});
+                            } else {
+                                top.layer.msg("删除成功！");
+                                refreshLay();
+                            }
+                        }
+                    });
+                }, function (index) {
+                    top.layer.close(index);
+                });
+            } else if (obj.event === "edit") {
+                toEidtUserInfo(data.userId);
+            } else if(obj.event === "roleAuthority"){
+                toEidtUserRole(data.userId);
+            }
+        });
+    });
+
+    /**添加用户*/
+    function toAddUserInfo(){
+        top.layuiWindow = top.layer.open({
+            type: 2,
+            anim: 1,
+            title: ['<span style="font-size:16px;">添加用户</span>'],
+            area: ['1140px', '510px'],
+            shadeClose: false, //点击遮罩关闭
+            content: [ctxPath+'/user/toAdd','no'],
+        });
+    }
+
+    /**编辑用户*/
+    function toEidtUserInfo(id){
+        top.layuiWindow = top.layer.open({
+            type: 2,
+            anim: 1,
+            title: ['<span style="font-size:16px;">编辑用户</span>'],
+            area: ['1140px', '510px'],
+            shadeClose: false, //点击遮罩关闭
+            content: [ctxPath+'/user/toEdit?id='+id,'no'],
+        });
+    }
+
+    /**设置用户角色*/
+    function toEidtUserRole(userId){
+        top.layuiWindow = top.layer.open({
+            type: 2,
+            anim: 1,
+            title: ['<span style="font-size:16px;">设置用户角色信息</span>'],
+            area: ['800px', '650px'],
+            shadeClose: false, //点击遮罩关闭
+            content: [ctxPath+'/user/toRole/'+userId,'yes'],
+        });
+    }
+
+    /**检索*/
+    function mySearch(){
+        layTable.reload("userTable",{
+            where: $("#searchForm").serializeObject()
+        });
+    }
+
+    /**重置检索条件*/
+    function myReset(){
+        document.querySelector('#searchForm').reset()
+        mySearch();
+    }
+
+    /**刷新列表@*/
+    function refreshLay(){
+        layTable.reload("userTable");
+    }
+</script>
+</html>

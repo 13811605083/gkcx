@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" style="height: 100%;overflow-x: hidden;">
+
+<head>
+    <meta charset="UTF-8">
+    <title>角色管理</title>
+
+    <link th:href="@{/webjars/layui/2.5.4/css/layui.css}" rel="stylesheet" media="all">
+</head>
+<style>
+    .layui-btn { border-radius: 7px; }
+    .odd        { background-color: #fff;}
+    .even       { background-color: #f2f2f2; }
+</style>
+<body>
+<div style="padding: 20px;">
+    <div style="width: 100%;">
+        <button class="layui-btn layui-btn-normal" onclick="toAddRole()">
+            <i class="layui-icon">&#xe61f;</i>添加角色
+        </button>
+
+    </div>
+    <!--数据表格-->
+    <table class="layui-hide" id="roleGrid" lay-filter="tableFilter"></table>
+</div>
+</body>
+
+<script type="text/html" id="authorityTpl">
+    <a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="menuAuthority">菜单权限</a>
+</script>
+
+<script type="text/html" id="operationTpl">
+    <button class="layui-btn layui-btn-xs layui-btn-primary" title="编辑" lay-event="edit"><i class="layui-icon">&#xe642;</i></button>
+    <button class="layui-btn layui-btn-xs layui-btn-primary" title="删除" lay-event="del"><i class="layui-icon">&#xe640;</i></button>
+</script>
+
+<script type="text/html" id="checkboxTpl">
+    <input type="checkbox" disabled name="lock" value="{{d.isUsing}}" title="启用" {{ d.isUsing == 1 ? 'checked' : '' }}  />
+</script>
+
+<script th:src="@{/webjars/jquery/1.12.3/jquery.min.js}" charset="utf-8"></script>
+<script th:src="@{/webjars/layui/2.5.4/layui.js}" charset="utf-8"></script>
+<script th:src="@{/static/js/watermark.js}" charset="utf-8"></script>
+<script th:inline="javascript">
+    const ctxPath = [[ ${#httpServletRequest.getContextPath()} ]];
+    let layTable;
+    layui.use("table", function () {
+        layTable = layui.table;
+        layTable.render({//加载列表
+            elem: "#roleGrid",
+            id: "roleTable",
+            limit: 20,
+            url: ctxPath + "/role/listData", //数据接口
+            page: true, //开启分页
+            cols: [[ //表头
+                {type: "numbers"},
+                //{type: 'checkbox'},
+                {title: "操作", width: 120, toolbar: "#operationTpl", align: "center"},
+                {title: "设置权限", width: 100, toolbar: "#authorityTpl", align: "center"},
+                {field: "id", title: "角色代码", sort: false, align: "center"},
+                {field: "roleName", title: "角色名称", sort: false, align: "center"},
+                {field: "dataAuthorityView", title: "数据权限", sort: false, align: "center"},
+                {field: "ranking", title: "显示顺序", sort: false, align: "center"},
+                {field:'isUsing', title:'是否启用', templet: '#checkboxTpl',align: "center"}
+            ]],
+            done: function () {
+                $('tr:odd').addClass('odd');
+                $('tr:even').addClass('even');
+                $(".layui-form-checkbox").removeClass("layui-checkbox-disbaled");
+            }
+        });
+
+        layTable.on("tool(tableFilter)", function (obj) {//监听工具条
+            const data = obj.data;
+            if (obj.event === "del") {
+                top.layer.confirm("确认删除此角色吗？", function (index) {
+                    $.ajax({
+                        type: "DELETE",
+                        url: ctxPath + "/role/deleteRole/" + data.id,
+                        async: true,
+                        success: function (data) {
+                            top.layer.close(index);
+                            if (data.valid === "ERROR") {
+                                top.layer.msg("删除失败！", function () {});
+                            } else {
+                                top.layer.msg("删除成功！");
+                                refreshLay();
+                            }
+                        }
+                    });
+                }, function (index) {
+                    top.layer.close(index);
+                });
+            } else if (obj.event === "edit") {
+                toEidtRole(data.id);
+            } else if (obj.event === "menuAuthority") {
+                toRoleMenu(data.id);
+            }
+        });
+    });
+
+    /**添加角色*/
+    function toAddRole(){
+        top.layuiWindow = top.layer.open({
+            type: 2,
+            anim: 1,
+            title: ['<span style="font-size:16px;">添加角色</span>'],
+            area: ['1140px', '510px'],
+            shadeClose: false, //点击遮罩关闭
+            content: [ctxPath+'/role/toAdd','no'],
+        });
+    }
+
+    /**编辑角色*/
+    function toEidtRole(id){
+        top.layuiWindow = top.layer.open({
+            type: 2,
+            anim: 1,
+            title: ['<span style="font-size:16px;">编辑角色</span>'],
+            area: ['1140px', '510px'],
+            shadeClose: false, //点击遮罩关闭
+            content: [ctxPath+'/role/toEdit?id='+id,'no'],
+        });
+    }
+
+    /**菜单权限*/
+    function toRoleMenu(id){
+        top.layuiWindow = top.layer.open({
+            type: 2,
+            anim: 1,
+            title: ['<span style="font-size:16px;">配置菜单权限</span>'],
+            area: ['500px', '600px'],
+            shadeClose: false, //点击遮罩关闭
+            content: [ctxPath+'/role/toMenu/'+id,'no'],
+        });
+    }
+
+    /**刷新列表@*/
+    function refreshLay(){
+        layTable.reload("roleTable");
+    }
+</script>
+
+</html>

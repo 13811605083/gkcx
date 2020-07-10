@@ -1,0 +1,157 @@
+@charset "utf-8";
+/* CSS Document */
+
+body{
+    background-size:100% 100%;
+    background-image:url(../images/01.png);
+    background-repeat: no-repeat;
+}
+div.top{
+    height: 62px;
+    width: 398px;
+    background-image:url(../images/top-logo.png);
+    background-repeat: no-repeat;
+    position: absolute;
+    left: 12%;
+    top: 6%;
+}
+div.name{
+    width: 60%;
+    position: absolute;
+    top: 43%;
+    text-align: center;
+    font-size: 4em;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 14px;
+}
+div.right{
+    height: 56%;
+    width: 31%;
+    background-color:#fff;
+    /* 	background-image:url(../images/02.png); */
+    /* 	background-repeat: no-repeat; */
+    position: absolute;
+    left: 61%;
+    top: 22%;
+    border-radius: 6px;
+}
+div.user-input{
+    height: 28px;
+    width: 77%;
+    position: absolute;
+    top: 33%;
+    left: 13%;
+}
+div.user-logo{
+    height:28px;
+    width:28px;
+    background-image:url(../images/06.png);
+    background-repeat: no-repeat;
+    position: absolute;
+    /*     left: 17%; */
+    /*     top: 29%; */
+}
+input.user{
+    width: 86%;
+    position: absolute;
+    left: 10%;
+    /* top: 29%; */
+    font-size: 1.6em;
+    border-style: none none solid none;
+    border-bottom-width: 1px;
+    border-bottom-color: #C0C0C0;
+    outline: none;
+    background-color: transparent;
+}
+input.user::-webkit-input-placeholder{
+    color: #C0C0C0;
+    font-size: 100%;
+    font-family:"\9ED1\4F53";
+    font-weight:600;
+}
+div.passwd-input{
+    height: 28px;
+    width: 77%;
+    position: absolute;
+    top: 50%;
+    left: 13%;
+}
+div.passwd-logo{
+    height:28px;
+    width:24px;
+    background-image:url(../images/07.png);
+    background-repeat: no-repeat;
+    position: absolute;
+    /* left: 17.3%;
+    top: 46%; */
+}
+input.passwd{
+    /* height: 5%; */
+    width: 86%;
+    position: absolute;
+    left: 10%;
+    /* top: 46%; */
+    font-size: 1.6em;
+    border-style: none none solid none;
+    border-bottom-width: 1px;
+    border-bottom-color: #C0C0C0;
+    outline: none;
+    background-color: transparent;
+}
+input.passwd::-webkit-input-placeholder{
+    color: #C0C0C0;
+    font-size: 100%;
+    font-family:"\9ED1\4F53";
+    font-weight:600;
+}
+div.bottom{
+    height:18px;
+    width:308px;
+    background-image:url(../images/05.png);
+    background-repeat: no-repeat;
+    position: absolute;
+    left: 43%;
+    top: 90%;
+}
+div.reset{
+    visibility:hidden;
+    font-family:"\9ED1\4F53";
+    font-size:120%;
+    font-weight:500;
+    position: absolute;
+    left: 62%;
+    top: 75%;
+}
+.login-btn {
+    position:absolute;
+    top: 68%;
+    left: 34%;
+    outline: none;
+    padding: 0.8em 0;
+    width: 30%;
+    text-align: center;
+    font-size: 1.2em;
+    border: none;
+    color: #FFFFFF;
+    cursor: pointer;
+    background: #1b4fa4;
+    box-shadow: 0px 2px 1px rgba(28, 28, 29, 0.42);
+    background-repeat: no-repeat;
+    font-weight: 600;
+    border-radius: 6px;
+}
+.login-btn:hover {
+    color: #fff;
+    background: #317ef3;
+    box-shadow: 1px 1px 1px #ccc;
+    border-bottom: #2868c8;
+}
+
+.error-tip{
+    color: #FF853B;
+    width: 100%;
+    text-align: center;
+    font-size: 24px;
+    margin-top: 60px;
+}

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" style="height: 100%;overflow-x: hidden;">
+
+<head>
+    <meta charset="UTF-8">
+    <title>组织机构管理</title>
+    <link th:href="@{/webjars/layui/2.5.4/css/layui.css}" rel="stylesheet" media="all">
+</head>
+<style>
+    .layui-btn          { border-radius: 7px; }
+</style>
+<body>
+<div class="layui-container" style="margin-top: 4%;">
+    <form class="layui-form layui-form-pane" id="form" action="">
+        <div class="layui-form-item">
+            <label class="layui-form-label">角色代码</label>
+            <div class="layui-input-block">
+                <label>
+                    <input class="layui-input" type="text" value="" name="id" lay-verify="required|id"
+                           autocomplete="off" placeholder="角色代码"/>
+                </label>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">角色名称</label>
+            <div class="layui-input-block">
+                <label>
+                    <input class="layui-input" type="text" name="roleName" value="" lay-verify="required|roleName"
+                           autocomplete="off" placeholder="请输入角色名称"/>
+                </label>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">数据权限</label>
+            <div class="layui-input-block">
+                <input type="radio" name="dataAuthority" value="3" title="个人" checked="">
+                <input type="radio" name="dataAuthority" value="2" title="本机构">
+                <input type="radio" name="dataAuthority" value="1" title="全部">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">显示顺序</label>
+            <div class="layui-input-block">
+                <label>
+                    <input class="layui-input" type="text" name="ranking" lay-verify="required|ranking"
+                           autocomplete="off" placeholder="显示顺序"/>
+                </label>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">是否启用</label>
+            <div class="layui-input-block">
+                <input type="radio" name="isUsing" value="1" title="启用" checked="">
+                <input type="radio" name="isUsing" value="0" title="禁用">
+            </div>
+        </div>
+
+        <div class="layui-form-item" style="text-align: center;">
+            <button type="button" class="layui-btn layui-btn-normal" lay-submit="" lay-filter="sub">提交</button>
+            <button type="reset" class="layui-btn layui-btn-primary" onclick="$('form')[0].reset();">重置</button>
+        </div>
+    </form>
+</div>
+</body>
+<script th:src="@{/webjars/jquery/1.12.3/jquery.min.js}" charset="utf-8"></script>
+<script th:src="@{/webjars/layui/2.5.4/layui.js}" charset="utf-8"></script>
+<script th:src="@{/static/js/base.js}" charset="utf-8"></script>
+<script th:inline="javascript">
+    const ctxPath = [[ ${#httpServletRequest.getContextPath()} ]];
+    layui.use(['form'], function () {
+        const form = layui.form;
+        //自定义验证规则
+        form.verify({
+            id: function (value) {
+                if (value.length > 40) {
+                    return '请输入1-40个字符';
+                }
+                let url = ctxPath + "/role/isExist/" + value;
+                if (isExist(url)) {
+                    return "该角色代码已存在！"
+                }
+            },
+            roleName: function (value) {
+                if (value.length > 40) {
+                    return '请输入1-40个字符';
+                }
+            },
+            ranking: function (value) {
+                if (!(/(^[1-9]\d*$)/.test(value))) {
+                    return '请输入数字！';
+                }
+                if (value.length > 4) {
+                    return '请输入1万以内数字！';
+                }
+            }
+        });
+
+        /**保存角色信息 @*/
+        form.on('submit(sub)', function() {
+            const $form = $("#form");
+            $.ajax({
+                type: "POST",
+                url: ctxPath + "/role/addRole",
+                async: false,
+                data: $form.serialize(),
+                success: function (data) {
+                    if ("OK" === data) {
+                        top.refreshLay();//刷新活动窗口列表
+                        top.layer.close(top.layuiWindow);
+                        top.layer.msg('添加成功！');
+                    } else {
+                        top.layer.msg('添加失败', {icon: 2});
+                    }
+                }
+            });
+        });
+    });
+</script>
+</html>

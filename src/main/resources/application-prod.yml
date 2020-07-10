@@ -1,0 +1,20 @@
+#日志级别
+logging:
+  level:
+    root: error
+
+#自定义配置文件com.lhcz.common.ConfigInfo
+mfg:
+  pwd: 123456
+  timeout: 60
+  time-unit: minutes
+
+spring:
+  redis:
+    database: 0
+    host: 127.0.0.1
+    port: 6379
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3306/gkcx?serverTimeZone=Asia/Shanghai
+    username: root
+    password: 123456

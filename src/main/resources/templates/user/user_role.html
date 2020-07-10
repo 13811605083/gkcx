@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <title></title>
+    <link th:href="@{/webjars/layui/2.5.4/css/layui.css}" rel="stylesheet" media="all">
+</head>
+<body>
+<div style="text-align: center;margin-bottom: 10px;margin-top: 10px;">
+    <button type="button" class="layui-btn layui-btn-normal" lay-event="sub">提交</button>
+    <button type="button" class="layui-btn layui-btn-primary" lay-event="reload">重置</button>
+</div>
+<div style="text-align: center;">
+    <div id="roleTransferDiv" class="demo-transfer"></div>
+</div>
+</body>
+
+<script th:src="@{/webjars/layui/2.5.4/layui.js}" charset="utf-8"></script>
+<script th:inline="javascript">
+    const ctxPath = [[ ${#httpServletRequest.getContextPath()} ]];
+    const userId = [[ ${userId} ]];
+    const roleData = [[ ${roleData} ]];
+    const selectRoleData = [[ ${selectRoleData} ]];
+
+    layui.use(['transfer', 'util'], function(){
+        const $ = layui.$
+            , transfer = layui.transfer
+            , util = layui.util;
+
+        //初始右侧数据
+        transfer.render({
+            elem: '#roleTransferDiv',
+            id: "roleTransfer",
+            title: ['待选', '已选'],  //自定义标题
+            showSearch: true,
+            width: 300,
+            height: 530,
+            data: roleData,
+            value: selectRoleData
+        });
+
+        util.event('lay-event', {
+            sub: function(){
+                const getData = transfer.getData('roleTransfer'); //获取右侧数据
+                const roleIds = getSelectRoleIds(getData);
+                $.ajax({
+                    type: "POST",
+                    url: ctxPath + "/user/addRoleUser",
+                    async: false,
+                    data: {
+                        roleIds: roleIds,
+                        userId: userId
+                    },
+                    success: function (data) {
+                        if ("OK" === data) {
+                            top.refreshLay();//刷新活动窗口列表
+                            top.layer.close(top.layuiWindow);
+                            top.layer.msg('提交成功！');
+
+                        } else {
+                            top.layer.msg('提交失败', {icon: 2});
+                        }
+                    }
+                });
+            }
+            ,reload:function(){
+                //实例重载
+                transfer.reload('roleTransfer', {
+                    title: ['待选', '已选'],  //自定义标题
+                    data: roleData,
+                    value: selectRoleData
+                });
+            }
+        });
+
+        /**获取选中的角色id*/
+        function getSelectRoleIds(getData){
+            let ids = "";
+            for(let i=0;i<getData.length;i++){
+                if(ids.length > 0){
+                    ids += ",";
+                }
+                ids += getData[i].value;
+            }
+            return ids;
+        }
+    });
+</script>
+</html>

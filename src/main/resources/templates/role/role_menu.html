@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" style="height: 100%">
+
+<head>
+    <meta charset="UTF-8">
+    <title>组织机构管理</title>
+
+    <link th:href="@{/webjars/layui/2.5.4/css/layui.css}" rel="stylesheet" media="all">
+</head>
+<style>
+    .layui-btn {
+        border-radius: 7px;
+    }
+</style>
+<body style="height: 100%;padding: 20px;">
+<div class="layui-container" >
+    <form class="layui-form layui-form-pane" id="form" action="">
+        <div style="margin-bottom: 10px;text-align: center;">
+            <button type="button" class="layui-btn layui-btn-normal" lay-demo="sub">提交</button>
+            <button type="button" class="layui-btn layui-btn-primary" lay-demo="reload">重置</button>
+        </div>
+    </form>
+    <div id="menuTree" style="overflow: auto;border: 1px solid #eeeeee;height: 460px;"></div>
+</div>
+</body>
+
+<script th:src="@{/webjars/jquery/1.12.3/jquery.min.js}" charset="utf-8"></script>
+<script th:src="@{/webjars/layui/2.5.4/layui.js}" charset="utf-8"></script>
+<script th:src="@{/static/js/base.js}" charset="utf-8"></script>
+<script th:src="@{/static/js/watermark.js}" charset="utf-8"></script>
+<script th:inline="javascript">
+    const ctxPath = [[ ${#httpServletRequest.getContextPath()} ]];
+    const treeData = [[ ${menuTree}]];
+    const roleId = [[ ${roleId}]];
+
+    layui.use(['form', 'tree', 'util'], function () {
+        const tree = layui.tree
+            , util = layui.util;
+
+        tree.render({
+            elem: '#menuTree'
+            , data: treeData
+            , showCheckbox: true  //是否显示复选框
+            , id: 'layuiTree'
+            , isJump: false //是否允许点击节点时弹出新窗口跳转
+        });
+
+        //按钮事件
+        util.event('lay-demo', {
+            setChecked: function () {
+                tree.setChecked('layuiTree', [12, 16]); //勾选指定节点
+            }, reload: function () {
+                //重载实例
+                tree.reload('layuiTree', {});
+            }, sub: function () {
+                let checkedData = tree.getChecked('layuiTree'); //获取选中节点的数据
+                let menuIds = getCheckedIds(checkedData, "");
+                $.ajax({
+                    type: "POST",
+                    url: ctxPath + "/role/addRoleMenu",
+                    async: false,
+                    data: {
+                        menuIds: menuIds,
+                        roleId: roleId
+                    },
+                    success: function (data) {
+                        if ("OK" === data) {
+                            window.location.href = ctxPath + "/role/toMenu/" + roleId;
+                            top.layer.msg('提交成功！');
+                        } else {
+                            top.layer.msg('提交失败', {icon: 2});
+                        }
+                    }
+                });
+            }
+        });
+
+        function getCheckedIds(checkedData, ids) {
+            for (let i = 0; i < checkedData.length; i++) {
+                let node = checkedData[i];
+                if (ids.length !== 0) {
+                    ids += ","
+                }
+                ids += node.id;
+                let children = node.children;
+                if (children !== undefined) {
+                    ids = getCheckedIds(children, ids);
+                }
+            }
+            return ids;
+        }
+    });
+</script>
+</html>

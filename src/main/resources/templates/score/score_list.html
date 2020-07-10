@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" style="height: 100%;overflow-x: hidden;">
+
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+
+    <link th:href="@{/webjars/layui/2.5.4/css/layui.css}" rel="stylesheet" media="all">
+</head>
+<style>
+    .layui-btn { border-radius: 7px; }
+    .odd        { background-color: #f2f2f2; }
+    .even       { background-color: #fff; }
+</style>
+<body>
+<div style="padding: 20px;">
+    <!--模糊搜索区域-->
+    <div style="width: 600px;float: left;position:relative;">
+        <form class="layui-form" role="form" id="searchForm" action="">
+            <table style="width: 100%;border: none;" id="searchTable">
+                <tr style="background: #ffffff;">
+                    <td class="layui-form-item" style="text-align: right;width: 60px;"><label>年份：</label></td>
+                    <td style="width:100px;">
+                        <label>
+                            <input type="text" id="seq_years" name="seq_years" class="layui-input" style="width:100%;display: inline;background-color: #fff;" placeholder="请选择年份"/>
+                        </label>
+                    </td>
+                    <td style="width: 60px;text-align: right;" class="layui-form-item" ><label>姓名：</label></td>
+                    <td style="width: 100px;">
+                        <label>
+                            <input type="text" name="s_names" class="layui-input" style="width:100%;display: inline;background-color: #fff;" placeholder="请输入姓名"/>
+                        </label>
+                    </td>
+                    <td style="width:60px ;text-align: right;" class="layui-form-item" ><label>名次：</label></td>
+                    <td style="width: 150px;">
+                        <label>
+                            <input type="text" name="rankingStart" class="layui-input" style="width:70px;display: inline;background-color: #fff;" placeholder="开始"/>-
+                            <input type="text" name="rankingEnd" class="layui-input" style="width:70px;display: inline;background-color: #fff;" placeholder="结束"/>
+                        </label>
+                    </td>
+                    <td></td>
+                </tr>
+            </table>
+        </form>
+    </div>
+    <div style="width: 100%;">
+        <button class="layui-btn" onclick="mySearch()"><i class="layui-icon layui-icon-search"></i></button>
+        <button class="layui-btn layui-btn-primary" onclick="myReset();"><i class="layui-icon layui-icon-refresh-3"></i></button>
+    </div>
+    <!--数据表格-->
+    <table class="layui-hide" id="socreGrid" lay-filter="tableFilter"></table>
+</div>
+</body>
+
+<script th:src="@{/webjars/jquery/1.12.3/jquery.min.js}" charset="utf-8"></script>
+<script th:src="@{/webjars/layui/2.5.4/layui.js}" charset="utf-8"></script>
+<script th:src="@{/static/js/base.js}" charset="utf-8"></script>
+<script th:src="@{/static/js/watermark.js}" charset="utf-8"></script>
+
+<script th:inline="javascript">
+    const ctxPath = [[ ${#httpServletRequest.getContextPath()} ]];
+    let layTable;
+
+    layui.use(['laydate','table'], function () {
+        layTable = layui.table;
+        layTable.render({//加载列表
+            elem: "#socreGrid",
+            id: "socreTable",
+            limit: 20,
+            url: ctxPath + "/score/listData", //数据接口
+            page: true, //开启分页
+            cols: [[ //表头
+                {type: "numbers"},
+                {field: "years", title: "年份", align: "center"},
+                {field: "ranking", title: "名次", align: "center"},
+                {field: "names", title: "姓名", align: "center"},
+                {field: "gender", title: "性别", align: "center"},
+                {field: "scores", title: "分数", align: "center"}
+            ]],
+            done: function () {
+                $('tr:odd').addClass('odd');
+                $('tr:even').addClass('even');
+                setTimeout(function(){
+                    $(".layui-form-checkbox").removeClass("layui-checkbox-disbaled");
+                },100);
+            }
+        });
+
+        //Tab的切换功能，切换事件监听等，需要依赖element模块
+        layui.laydate.render({
+            elem: '#seq_years',
+            type: 'year',
+            done: function(value){
+            }
+        });
+
+        layTable.on("tool(tableFilter)", function (obj) {//监听工具条
+            const data = obj.data;
+        });
+    });
+
+    /**检索*/
+    function mySearch(){
+        layTable.reload("socreTable",{
+            where: $("#searchForm").serializeObject()
+        });
+    }
+
+    /**重置检索条件*/
+    function myReset(){
+        document.querySelector('#searchForm').reset()
+        mySearch();
+    }
+
+    /**刷新列表@*/
+    function refreshLay(){
+        layTable.reload("socreTable");
+    }
+</script>
+</html>
